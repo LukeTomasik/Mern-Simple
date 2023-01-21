@@ -23,7 +23,9 @@ app.use(cookieParser())
 mongoose.set('strictQuery', true);
 app.use('/', express.static(path.join(__dirname,'/public')))
 
+
 app.use('/', require('./routes/root'))
+app.use('/users',require('./routes/userRoutes'))
 
 // catch all that goes to our site
 app.all('*', (req,res) => {
