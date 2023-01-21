@@ -1,5 +1,5 @@
 const User = require('../models/User')
-const note = require('../models/Note')
+const Note = require('../models/Note')
 const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcrypt')
 
@@ -32,7 +32,7 @@ const createNewUser = asyncHandler(async (req,res) => {
     // check for duplicates
     const duplicate = await User.findOne({ username }).lean().exec()
 
-    if(duplicate) return res.status(409).json({message: 'Duplicate username'})
+    if(duplicate) return res.status(409).json({message: 'Duplicate username'}) 
 
     const hashedPwd = await bcrypt.hash(password, 10) //
 
@@ -56,6 +56,7 @@ const createNewUser = asyncHandler(async (req,res) => {
 const updateUser = asyncHandler(async (req,res) => {
     const {id, username, roles, active, password} = req.body
 
+    // confirm Data
     if(!id || !username || !Array.isArray(roles) || !roles.length || typeof active !== 'boolean') {
         res.status(400).json({ message: 'all fields are required'})
     }
@@ -66,11 +67,12 @@ const updateUser = asyncHandler(async (req,res) => {
 
     // check for duplicates
 
-    const duplicate = await user.findOne({username}).lean().exec()
+    const duplicate = await User.findOne({username}).lean().exec()
+
     // allow updates to the original user
 
     if (duplicate && duplicate?._id.toString() !== id) {
-        return res.status(409),json({message: 'Duplicate username'})
+        return res.status(409).json({message: 'Duplicate username'})
     }
 
     user.username = username
@@ -79,9 +81,9 @@ const updateUser = asyncHandler(async (req,res) => {
 
     if (password) {
         // hash password
-        user.password = await bcrypt.hash(pasword, 10) //salt rounds
+        user.password = await bcrypt.hash(password, 10) //salt rounds
     }
-    const updatedUser = await User.save()
+    const updatedUser = await user.save()
     res.json({ message: `${updatedUser.username} updated`})
 })
 
@@ -95,8 +97,8 @@ const deleteUser = asyncHandler(async (req,res) => {
 
     if (!id) return res.status(400).json({ message: 'user ID required'})
 
-    const notes = await note.findOne({ user:id}).lean().exec()
-    if (notes?.length) {
+    const note = await Note.findOne({ user:id}).lean().exec()
+    if (note?.length) {
         return res.status(400).json({ message: 'user has assigned notes'})
     }
 
